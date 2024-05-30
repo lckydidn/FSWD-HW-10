@@ -1,5 +1,5 @@
 const model = require("../models");
-
+const upload = require("../middlewares/upload.js");
 class Movies {
   static async getAll(req, res) {
     try {
@@ -106,6 +106,33 @@ class Movies {
         message: "Delete success",
         deleteUser,
       });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  }
+  static async upload(req, res, next) {
+    try {
+      const { id } = req.params;
+      const file = req.file;
+      const movies = await model.Movies.findByPk(id);
+      if (!movies) {
+        return res.status(400).json({
+          message: "Movie not found",
+        });
+      }
+      if (!file) {
+        return res.status(400).json({
+          message: "No Image provided",
+        });
+      }
+      const image_url = `http://localhost:3000/upload/${file.filename}`;
+      movies.update({
+        image_url: image_url,
+      });
+      res.status(201).json({ message: "Success", movies });
     } catch (error) {
       console.log(error);
       res.status(500).json({
