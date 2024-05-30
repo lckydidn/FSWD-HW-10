@@ -1,4 +1,5 @@
 const model = require("../models");
+// alternatively bisa make {Users} tinggal ubah Class module exports sama nnti manggil di routes
 const bcrypt = require("bcrypt");
 
 class Users {
