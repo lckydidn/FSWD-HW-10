@@ -11,6 +11,7 @@ app.get("/", (req, res) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
+//static files
 app.use("/upload", express.static(path.join(__dirname, "/uploads")));
 app.use(router);
 app.listen(port, () => {
