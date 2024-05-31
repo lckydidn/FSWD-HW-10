@@ -1,18 +1,12 @@
-const model = require("../models");
-const upload = require("../middlewares/upload.js");
+const movieService = require("../services/moviesService");
+
 class Movies {
   static async getAll(req, res) {
     try {
       const { page } = req.query;
-      const limit = 10;
-      const offset = (page - 1) * limit;
-
-      const data = await model.Movies.findAll({
-        offset: offset,
-        limit: limit,
-      });
+      const data = await movieService.getAllMovies(page);
       res.status(200).json({
-        message: "Sucessfully Get All Movies",
+        message: "Successfully Get All Movies",
         data,
       });
     } catch (error) {
@@ -22,35 +16,14 @@ class Movies {
       });
     }
   }
+
   static async post(req, res) {
     try {
       const { title, genres, year } = req.body;
-
-      if (!title || !genres || !year)
-        return res.status(400).json({
-          message: "Invalid input",
-        });
-
-      const existingMovies = await model.Movies.findOne({
-        where: {
-          title: title,
-        },
-      });
-
-      if (existingMovies)
-        return res.status(400).json({
-          message: "Movies already exists",
-        });
-
-      const postMovies = await model.Movies.create({
-        title,
-        genres,
-        year,
-      });
-
-      res.status(200).json({
-        message: "Success input new Movies",
-        postMovies,
+      const result = await movieService.createMovie(title, genres, year);
+      res.status(result.status).json({
+        message: result.message,
+        data: result.data,
       });
     } catch (error) {
       console.log(error);
@@ -59,32 +32,15 @@ class Movies {
       });
     }
   }
+
   static async put(req, res) {
     try {
       const { id } = req.params;
       const { title, genres, year } = req.body;
-
-      if (!title || !genres || !year)
-        return res.status(400).json({
-          message: "Invalid input",
-        });
-
-      const updateMovies = await model.Movies.update(
-        {
-          title,
-          genres,
-          year,
-        },
-        {
-          where: {
-            id: parseInt(id),
-          },
-        }
-      );
-
-      res.status(200).json({
-        message: "Data has been updated",
-        updateMovies,
+      const result = await movieService.updateMovie(id, title, genres, year);
+      res.status(result.status).json({
+        message: result.message,
+        data: result.data,
       });
     } catch (error) {
       console.log(error);
@@ -93,18 +49,14 @@ class Movies {
       });
     }
   }
+
   static async delete(req, res) {
     try {
-      const id = req.params.id;
-      const deleteUser = await model.Movies.destroy({
-        where: {
-          id: parseInt(id),
-        },
-      });
-
-      res.status(200).json({
-        message: "Delete success",
-        deleteUser,
+      const { id } = req.params;
+      const result = await movieService.deleteMovie(id);
+      res.status(result.status).json({
+        message: result.message,
+        data: result.data,
       });
     } catch (error) {
       console.log(error);
@@ -113,26 +65,16 @@ class Movies {
       });
     }
   }
-  static async upload(req, res, next) {
+
+  static async upload(req, res) {
     try {
       const { id } = req.params;
       const file = req.file;
-      const movies = await model.Movies.findByPk(id);
-      if (!movies) {
-        return res.status(400).json({
-          message: "Movie not found",
-        });
-      }
-      if (!file) {
-        return res.status(400).json({
-          message: "No Image provided",
-        });
-      }
-      const image_url = `http://localhost:3000/upload/${file.filename}`;
-      movies.update({
-        image_url: image_url,
+      const result = await movieService.uploadImage(id, file);
+      res.status(result.status).json({
+        message: result.message,
+        data: result.data,
       });
-      res.status(201).json({ message: "Success", movies });
     } catch (error) {
       console.log(error);
       res.status(500).json({
@@ -141,4 +83,5 @@ class Movies {
     }
   }
 }
+
 module.exports = Movies;

@@ -1,20 +1,12 @@
-const model = require("../models");
-// alternatively bisa make {Users} tinggal ubah Class module exports sama nnti manggil di routes
-const bcrypt = require("bcrypt");
+const userService = require("../services/usersService");
 
 class Users {
   static async getAll(req, res) {
     try {
       const { page } = req.query;
-      const limit = 10;
-      const offset = (page - 1) * limit;
-
-      const data = await model.Users.findAll({
-        offset: offset,
-        limit: limit,
-      });
+      const data = await userService.getAllUsers(page);
       res.status(200).json({
-        message: "Sucessfully Get All Users",
+        message: "Successfully Get All Users",
         data,
       });
     } catch (error) {
@@ -24,70 +16,35 @@ class Users {
       });
     }
   }
+
   static async register(req, res) {
     try {
       const { email, gender, password, role } = req.body;
-
-      if (!email || !gender || !password || !role)
-        return res.status(400).json({
-          message: "Invalid input",
-        });
-
-      const existingUser = await model.Users.findOne({
-        where: {
-          email: email,
-        },
-      });
-
-      if (existingUser)
-        return res.status(400).json({
-          message: "Email already exists",
-        });
-
-      const hashPassword = await bcrypt.hash(password, 10);
-
-      console.log("New data registered:", {
+      const result = await userService.registerUser(
         email,
         gender,
-        password: hashPassword,
-        role,
-      });
-
-      const data = await model.Users.create({
-        email: email,
-        gender: gender,
-        password: hashPassword,
-        role: role,
-      });
-
-      res.status(200).json({
-        message: "Register Complete",
-        data,
+        password,
+        role
+      );
+      res.status(result.status).json({
+        message: result.message,
+        data: result.data,
       });
     } catch (error) {
       console.log(error);
-      res.status(400).json({
+      res.status(500).json({
         message: "Internal server error",
       });
     }
   }
+
   static async login(req, res) {
     try {
       const { email, password } = req.body;
-      const data = await model.Users.findOne({
-        where: {
-          email,
-        },
-      });
-
-      if (!data || !bcrypt.compareSync(password, data.password)) {
-        return res.status(400).json({
-          message: "Wrong Password",
-        });
-      }
-
-      res.status(200).json({
-        message: "Login Success",
+      const result = await userService.loginUser(email, password);
+      res.status(result.status).json({
+        message: result.message,
+        data: result.data,
       });
     } catch (error) {
       console.error(error);
@@ -96,34 +53,21 @@ class Users {
       });
     }
   }
+
   static async put(req, res) {
     try {
       const { id } = req.params;
       const { email, gender, password, role } = req.body;
-      const hashPassword = bcrypt.hashSync(password, 10);
-
-      if (!email || !gender || !password || !role)
-        return res.status(400).json({
-          message: "Invalid input",
-        });
-
-      const updateUsers = await model.Users.update(
-        {
-          email,
-          gender,
-          password: hashPassword,
-          role,
-        },
-        {
-          where: {
-            id: parseInt(id),
-          },
-        }
+      const result = await userService.updateUser(
+        id,
+        email,
+        gender,
+        password,
+        role
       );
-
-      res.status(200).json({
-        message: "Data has been updated",
-        updateUsers,
+      res.status(result.status).json({
+        message: result.message,
+        data: result.data,
       });
     } catch (error) {
       console.log(error);
@@ -132,18 +76,14 @@ class Users {
       });
     }
   }
+
   static async delete(req, res) {
     try {
-      const id = req.params.id;
-      const deleteUser = await model.Users.destroy({
-        where: {
-          id: parseInt(id),
-        },
-      });
-
-      res.status(200).json({
-        message: "Delete success",
-        deleteUser,
+      const { id } = req.params;
+      const result = await userService.deleteUser(id);
+      res.status(result.status).json({
+        message: result.message,
+        data: result.data,
       });
     } catch (error) {
       console.log(error);
