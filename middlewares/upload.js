@@ -12,7 +12,7 @@ const diskStorage = multer.diskStorage({
     cb(null, randomFileName);
   },
 });
-
+// penggunaan .single image disini biar gaharus declare lagi di routes
 const upload = multer({ storage: diskStorage }).single("image");
 
 module.exports = upload;
