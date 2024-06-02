@@ -56,10 +56,9 @@ class MovieService {
 
     const imageUrl = `http://localhost:3000/upload/${file.filename}`;
     await movieRepository.update(id, { image_url: imageUrl });
-    const updated = await movieRepository.findById(id);
+    const updated = await movieRepository.findById(id); // untuk menampilkan data yg sudah ditambahkan image_url
     return { status: 201, message: "Success", data: updated };
   }
 }
 
 module.exports = MovieService;
-// bikin variabel baru contoh newMovies baru taro di line 60
